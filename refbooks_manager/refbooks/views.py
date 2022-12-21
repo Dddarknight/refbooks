@@ -19,8 +19,8 @@ class RefBooksView(ListAPIView):
     """
     Returns a list of all refbooks.
 
-    If a date parameter provided, the refbooks which have versions
-    with started date after the requested date will be returned
+    If a date parameter is provided, the refbooks which have versions
+    with started date after the requested date will be returned.
     """
 
     serializer_class = RefBookSerializer
@@ -50,10 +50,10 @@ class RefBooksView(ListAPIView):
 
 class RefBookElementsView(ListAPIView):
     """
-    Returns a list of elements for a particular RefBook.
+    Returns a list of elements for a particular RefBook in the latest version.
 
-    If a version parameter provided, only elements
-    of this version of the RefBook are returned.
+    If a version parameter is provided, only elements
+    of this version of the RefBook will be returned.
     """
 
     serializer_class = ElementSerializer
@@ -89,6 +89,8 @@ class ValidateElementView(APIView):
     Checks if the element with given parameters exists.
 
     The code and value parameters are required.
+    If a version parameter is absent,
+    the element will be checked in the latest version.
     """
 
     code = openapi.Parameter('code', openapi.IN_QUERY,
