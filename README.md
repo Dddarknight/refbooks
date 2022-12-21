@@ -8,7 +8,7 @@ Endpoints:
 |----------|---------|---------|
 | /refbooks/ [?date=<date>] | GET |  Returns all available refbooks. If a date parameter is provided, only refbooks, which have versions with started date after the requested date, will be returned. |
 | /refbooks/{id}/elements [?version={version}] | GET | Returns elements of the requested refbook in the latest version. If a version parameter provided, only elements of this version of the RefBook will be returned. |
-| /refbooks/{id}/check_element?code={code}&value={value} [&version={version}] | GET |  Check if the element with provided parameters exists. If a version parameter is absent, the element will be checked in the latest version. |
+| /refbooks/{id}/check_element?code={code}&value={value} [&version={version}] | GET |  Checks if the element with provided parameters exists. If a version parameter is absent, the element will be checked in the latest version. |
 | /docs | GET |  API documentation with Swagger/OpenAPI 2.0 specifications. |
 | /admin | GET |  Admin interface. |
 
