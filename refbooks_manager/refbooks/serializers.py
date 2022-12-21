@@ -7,6 +7,7 @@ class RefBookSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RefBook
+        root_name = 'refbooks'
         fields = [
             'id', 'code', 'name'
         ]
@@ -17,6 +18,7 @@ class ElementSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Element
+        root_name = 'elements'
         fields = [
             'code', 'value', 'version'
         ]

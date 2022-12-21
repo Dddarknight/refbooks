@@ -1,15 +1,15 @@
 import datetime
-from rest_framework.response import Response
-from rest_framework.generics import ListAPIView
-from rest_framework.views import APIView
-from django.db.models import Subquery
-from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.generics import ListAPIView
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-
+from refbooks_manager.refbooks.mixins import LatestVersionMixin
 from refbooks_manager.refbooks.models import (
-    RefBook, Version, Element
+    RefBook, Element
 )
+from refbooks_manager.refbooks.renderers import AppJSONRenderer
 from refbooks_manager.refbooks.serializers import (
     RefBookSerializer, ElementSerializer
 )
@@ -24,7 +24,9 @@ class RefBooksView(ListAPIView):
     """
 
     serializer_class = RefBookSerializer
-    date = openapi.Parameter('date', openapi.IN_QUERY,
+    renderer_classes = (AppJSONRenderer, )
+    date = openapi.Parameter('date',
+                             openapi.IN_QUERY,
                              description="The refbooks which have versions "
                                          "with started date after the "
                                          "requested date will be returned.",
@@ -38,17 +40,17 @@ class RefBooksView(ListAPIView):
         date_iso = self.request.query_params.get('date')
         if not date_iso:
             refbooks = RefBook.objects.all()
-        else:
-            try:
-                date = datetime.date.fromisoformat(date_iso)
-            except Exception:
-                return Response('Date is invalid')
-            refbooks = RefBook.objects.filter(
-                version__start_date__gte=date).distinct()
+            return refbooks
+        try:
+            date = datetime.date.fromisoformat(date_iso)
+        except Exception:
+            return Response('Date is invalid')
+        refbooks = RefBook.objects.filter(
+            version__start_date__gte=date).distinct()
         return refbooks
 
 
-class RefBookElementsView(ListAPIView):
+class RefBookElementsView(LatestVersionMixin, ListAPIView):
     """
     Returns a list of elements for a particular RefBook in the latest version.
 
@@ -57,7 +59,9 @@ class RefBookElementsView(ListAPIView):
     """
 
     serializer_class = ElementSerializer
-    version = openapi.Parameter('version', openapi.IN_QUERY,
+    renderer_classes = (AppJSONRenderer, )
+    version = openapi.Parameter('version',
+                                openapi.IN_QUERY,
                                 description="The value of the RefBook version."
                                             "Only elements of this version"
                                             " of the RefBook are returned",
@@ -70,21 +74,13 @@ class RefBookElementsView(ListAPIView):
     def get_queryset(self):
         pk = self.kwargs.get('pk')
         elements = Element.objects.filter(version__refbook__pk=pk)
-        version = self.request.query_params.get('version')
-        if version:
-            elements = elements.filter(version__version=version)
-        else:
-            ordered_versions = Version.objects.filter(
-                refbook__pk=pk,
-                start_date__lte=datetime.date.today()
-            ).order_by("-start_date")
-            elements = elements.filter(
-                version__version=Subquery(
-                    ordered_versions.values('version')[:1]))
+        version_qp = self.request.query_params.get('version')
+        version = version_qp if version_qp else self.get_latest_version(pk)
+        elements = elements.filter(version__version=version)
         return elements
 
 
-class ValidateElementView(APIView):
+class ValidateElementView(LatestVersionMixin, APIView):
     """
     Checks if the element with given parameters exists.
 
@@ -93,16 +89,19 @@ class ValidateElementView(APIView):
     the element will be checked in the latest version.
     """
 
-    code = openapi.Parameter('code', openapi.IN_QUERY,
+    code = openapi.Parameter('code',
+                             openapi.IN_QUERY,
                              description="The code of the requested element.",
                              type=openapi.TYPE_STRING,
                              required=True)
-    value = openapi.Parameter('value', openapi.IN_QUERY,
+    value = openapi.Parameter('value',
+                              openapi.IN_QUERY,
                               description="The value of the "
                                           "requested element.",
                               type=openapi.TYPE_STRING,
                               required=True)
-    version = openapi.Parameter('version', openapi.IN_QUERY,
+    version = openapi.Parameter('version',
+                                openapi.IN_QUERY,
                                 description="The value of the RefBook version."
                                             "Only elements of this version"
                                             " of the RefBook are returned",
@@ -114,21 +113,13 @@ class ValidateElementView(APIView):
         value = self.request.query_params.get('value')
         if not code or not value:
             return Response('Request data is invalid')
-        version = self.request.query_params.get('version')
+
         elements = Element.objects.filter(
                 code=code, value=value, version__refbook__pk=pk
         )
-        if version:
-            element = elements.filter(version__version=version)
-        else:
-            ordered_versions = Version.objects.filter(
-                refbook__pk=pk,
-                start_date__lte=datetime.date.today()
-            ).order_by("-start_date")
-            element = elements.filter(
-                version__version=Subquery(
-                    ordered_versions.values('version')[:1])
-            )
+        version_qp = self.request.query_params.get('version')
+        version = version_qp if version_qp else self.get_latest_version(pk)
+        element = elements.filter(version__version=version)
         return Response(
             f'Element is in RefBook {pk}') if element else Response(
             f'No such Element in RefBook {pk}'
