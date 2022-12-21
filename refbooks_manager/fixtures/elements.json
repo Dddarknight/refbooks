@@ -1,0 +1,16 @@
+{
+    "elements": {
+      "element1": {
+        "code": "D1",
+        "value": "doctor1"
+      },
+      "element2": {
+        "code": "D2",
+        "value": "doctor2"
+      },
+      "element3": {
+        "code": "D3",
+        "value": "doctor3"
+      }
+  }
+}

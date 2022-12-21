@@ -1,0 +1,19 @@
+{
+    "refbooks": {
+      "refbook1": {
+        "code": "RB1",
+        "name": "refbook1",
+        "description": "description1"
+      },
+      "refbook2": {
+        "code": "RB2",
+        "name": "refbook2",
+        "description": "description2"
+      },
+      "refbook3": {
+        "code": "RB3",
+        "name": "refbook3",
+        "description": "description3"
+      }
+  }
+}
