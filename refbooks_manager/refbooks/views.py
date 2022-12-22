@@ -21,6 +21,10 @@ class RefBooksView(ListAPIView):
 
     If a date parameter is provided, the refbooks which have versions
     with started date after the requested date will be returned.
+
+    Examples of requests:
+    /refbooks/
+    /refbooks/?date=2022-12-01
     """
 
     serializer_class = RefBookSerializer
@@ -29,7 +33,9 @@ class RefBooksView(ListAPIView):
                              openapi.IN_QUERY,
                              description="The refbooks which have versions "
                                          "with started date after the "
-                                         "requested date will be returned.",
+                                         "requested date will be returned. "
+                                         "Date must de provided "
+                                         "in the format YYYY-MM-DD",
                              type=openapi.TYPE_STRING)
 
     @swagger_auto_schema(manual_parameters=[date])
@@ -46,7 +52,7 @@ class RefBooksView(ListAPIView):
         except Exception:
             return Response('Date is invalid')
         refbooks = RefBook.objects.filter(
-            version__start_date__gte=date).distinct()
+            version__start_date__lte=date).distinct()
         return refbooks
 
 
@@ -56,6 +62,10 @@ class RefBookElementsView(LatestVersionMixin, ListAPIView):
 
     If a version parameter is provided, only elements
     of this version of the RefBook will be returned.
+
+    Examples of requests:
+    /refbooks/1/elements
+    /refbooks/1/elements?version=1.0
     """
 
     serializer_class = ElementSerializer
@@ -87,6 +97,10 @@ class ValidateElementView(LatestVersionMixin, APIView):
     The code and value parameters are required.
     If a version parameter is absent,
     the element will be checked in the latest version.
+
+    Examples of requests:
+    refbooks/1/check_element?code=J00&value=therapist
+    refbooks/1/check_element?code=J00&value=therapist&version=1.0
     """
 
     code = openapi.Parameter('code',
@@ -103,7 +117,7 @@ class ValidateElementView(LatestVersionMixin, APIView):
     version = openapi.Parameter('version',
                                 openapi.IN_QUERY,
                                 description="The value of the RefBook version."
-                                            "Only elements of this version"
+                                            " Only elements of this version"
                                             " of the RefBook are returned",
                                 type=openapi.TYPE_STRING)
 

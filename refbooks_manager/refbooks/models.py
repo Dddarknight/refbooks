@@ -14,14 +14,14 @@ class RefBook(models.Model):
     description = models.TextField()
 
     def __str__(self):
-        return self.name
+        return f'refbook {self.name} (code {self.code})'
 
 
 class Version(models.Model):
 
     refbook = models.ForeignKey(RefBook, on_delete=models.CASCADE)
     version = models.CharField(max_length=50, blank=False)
-    start_date = models.DateField(default=timezone.now, unique=True)
+    start_date = models.DateField(default=timezone.now)
 
     class Meta:
         verbose_name = 'version'
@@ -34,7 +34,7 @@ class Version(models.Model):
         ordering = ['version']
 
     def __str__(self):
-        return self.version
+        return f'{self.refbook}, version {self.version}'
 
 
 class Element(models.Model):

@@ -41,17 +41,29 @@ class RefbooksViewTest(TestCase):
     def test_refbooks_with_date(self):
         c = Client()
         url = reverse_lazy('refbooks')
-        response = c.get(f'{url}?date=2022-12-01')
-        expected_codes = ["RB1", "RB3"]
-        expected_names = ["refbook1", "refbook3"]
+        response = c.get(f'{url}?date=2022-12-14')
+        expected_codes = ["RB1", "RB2"]
+        expected_names = ["refbook1", "refbook2"]
         for code in expected_codes:
             self.assertContains(response, code)
         for name in expected_names:
             self.assertContains(response, name)
-        not_expected_code = ["RB2"]
+        not_expected_code = ["RB3"]
         self.assertNotContains(response, not_expected_code)
-        not_expected_name = ["refbook2"]
+        not_expected_name = ["refbook3"]
         self.assertNotContains(response, not_expected_name)
+
+        response = c.get(f'{url}?date=2022-11-01')
+        expected_code = "RB1"
+        expected_name = "refbook1"
+        self.assertContains(response, expected_code)
+        self.assertContains(response, expected_name)
+        not_expected_codes = ["RB2", "RB3"]
+        not_expected_names = ["refbook2", "refbook3"]
+        for code in not_expected_codes:
+            self.assertNotContains(response, code)
+        for name in not_expected_names:
+            self.assertNotContains(response, name)
 
 
 class ElementsViewTest(TestCase):
